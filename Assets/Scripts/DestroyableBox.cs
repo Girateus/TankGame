@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class DestroyableBox : MonoBehaviour
@@ -7,6 +8,8 @@ public class DestroyableBox : MonoBehaviour
 
     [SerializeField] private Rigidbody _capRb;
     [SerializeField] private Rigidbody _boxRb;
+    
+    public Action<DestroyableBox> OnBoxDestroyed;
 
     private bool _shouldExplode;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -34,6 +37,9 @@ public class DestroyableBox : MonoBehaviour
             _boxRb.AddForce(other.transform.position - transform.position * _boxForce);
             Collider myCollider =GetComponent<Collider>();
             Destroy(myCollider);
+            
+            OnBoxDestroyed.Invoke(this);
+            
         }
         
     }
