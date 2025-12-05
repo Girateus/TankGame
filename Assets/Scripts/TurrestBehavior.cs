@@ -1,67 +1,124 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 public class TurrestBehavior : MonoBehaviour
 {
-    [SerializeField] Transform _turret;
-    [SerializeField] Transform _player;
+    [SerializeField] private float _detectionRange;
+    [SerializeField] private float _fireRate;
+    [SerializeField] private float _dps;
+    [SerializeField] private Transform _playerPosition;
+    [SerializeField] private Transform _turretCannon;
+    [SerializeField] private float _lerpCompensation;
+    [SerializeField] private LineRenderer _laser;
+    [SerializeField] private Transform _laserPoint;
     
-    [SerializeField] GameObject _ammoPrefab;
+    [SerializeField] private LayerMask _layers;
+    
+    private bool _playerDetected = false;
 
-    [SerializeField] float MaxAngle;
-    [SerializeField] float MinAngle;
-    [SerializeField] float _rotateTurret = 20f;
-    [SerializeField] float _maxDistance = 15f;
-    [SerializeField] float _betweenShots = 5f;
-    [SerializeField] float _nextTimeToFire;
-
-    private Time _time;
-    private float Ypos;
-    private float Xpos;
-    private float Zpos;
+    
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if (!_playerPosition)
+        {
+            _playerPosition = GameObject.FindWithTag("Tank").transform;
+        }
         
+        _laser.enabled = false;
+       
     }
-
+    
     // Update is called once per frame
     void Update()
     {
-        if (_player == null)
+     //_turretCannon.LookAt(_playerPosition);
+     
+     if (_playerPosition != null )
+     {
+         Vector3 playerDirection = _playerPosition.position - _turretCannon.position;
+         if (playerDirection.magnitude < _detectionRange)
+         {
+             if (_playerDetected == false)
+             {
+                 StartCoroutine(ShootSequence_co());
+                 _playerDetected = true;
+             }
+             _turretCannon.rotation = Quaternion.Lerp(_turretCannon.rotation, Quaternion.LookRotation(playerDirection), _lerpCompensation * Time.deltaTime);  
+         }
+         else
+         {
+             StopAllCoroutines();
+             //StopCoroutine(ShootSequence_co());
+             _laser.enabled = false;
+             _playerDetected = false;
+             _turretCannon.rotation = Quaternion.Lerp(_turretCannon.rotation, Quaternion.LookRotation(Vector3.forward), _lerpCompensation * Time.deltaTime);
+         }
+         
+     }
+     else
+     {
+         StopAllCoroutines();
+         _laser.enabled = false;
+     }
+     
+     if (_laser.enabled)
+     {
+         _laser.SetPosition(0, _laserPoint.position);
+         _laser.SetPosition(1, _playerPosition.position);
+     }
+
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(_turretCannon.position, _detectionRange);
+    }
+
+    private void DoLaserShoot()
+    {
+        if (Physics.Raycast(_turretCannon.position, _turretCannon.forward, out RaycastHit hit, Mathf.Infinity, _layers))
         {
-            // Tente de trouver le joueur s'il n'est pas assigné dans l'Inspector
-            GameObject joueur = GameObject.FindWithTag("Player");
-            if (joueur != null)
+            Debug.Log("hit something" + hit.collider.gameObject.name);
+           // if (hit.collider.CompareTag("Tank"))
+           if (hit.collider.gameObject.TryGetComponent(out DamageTaker damageTaker))
             {
-                if (Time.time <= _nextTimeToFire)
-                {
-                    
-                }
-                _player = joueur.transform;
+                damageTaker.TakeDamage(_dps * Time.deltaTime);
+                
+                _laser.enabled = true;
+                _laser.SetPosition(0,_laserPoint.position);
+                _laser.SetPosition(1, hit.point);
+                
+                Debug.DrawRay(_turretCannon.position, _turretCannon.forward * 100, Color.green, 0.25f);
             }
+            else
+            {
+               _laser.enabled = false;
+            }
+
+            //if (hit.collider.gameObject.TryGetComponent(out TankController tank))
+            //{
+            //    Debug.DrawRay(_turretCannon.position, _turretCannon.forward * 100, Color.green);
+            //}
         }
-        
-        Ypos = Mathf.Clamp(_turret.position.y, MinAngle, MaxAngle);
-        Xpos = Mathf.Clamp(_turret.position.x, MinAngle, MaxAngle);
-        Zpos = Mathf.Clamp(_turret.position.z, MinAngle, MaxAngle);
-        
-        float distance = Vector3.Distance(_turret.position, _player.position);
-        if (distance <= _maxDistance)
+        else
         {
-            FollowTarget();
-            
-        }   
+            Debug.DrawRay(_turretCannon.position, _turretCannon.forward * 100, Color.red, 0.25f);
+            _laser.enabled = false;
+        }
     }
     
-    private void FollowTarget()
+    private IEnumerator ShootSequence_co()
     {
-        Vector3 directionToTarget = new Vector3(_player.position.x - Xpos, _player.position.y, _player.position.z);
-        
-        Quaternion rotationDesiree = Quaternion.LookRotation(directionToTarget);
-        
-        _turret.rotation = Quaternion.Slerp(
-            _turret.rotation,
-            rotationDesiree,
-            _rotateTurret * Time.deltaTime);
+        do
+        {
+            DoLaserShoot();
+            yield return new WaitForSeconds(_fireRate);
+        } while (true);
+
+
     }
 }

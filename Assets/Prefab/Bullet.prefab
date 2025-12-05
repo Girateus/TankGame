@@ -98,6 +98,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _forceIntensity: 50
+  _damage: 5
+  _impact: {fileID: 1802987208106511311, guid: 397b985ab4d5006489f87090d99c493d, type: 3}
 --- !u!1001 &2973196201190598580
 PrefabInstance:
   m_ObjectHideFlags: 0

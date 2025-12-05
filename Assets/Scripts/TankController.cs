@@ -12,20 +12,28 @@ public class TankController : MonoBehaviour
     [SerializeField] private Transform _bulletSpawn;
     [SerializeField] private Transform _tankTurret;
     [SerializeField] private Transform _tankCannon;
+    [SerializeField] private ParticleSystem _flash;
+    [SerializeField] private ParticleSystem _smoke1;
+    [SerializeField] private ParticleSystem _smoke2;
     
     
-    
+    private const float MIN_CANNON_ANGLE = -40f; 
+    private const float MAX_CANNON_ANGLE = 40f;
     private float _moveInput = 0;
     private float _rotateInput = 0;
     private float _rotateTurret = 0;
     private float _cannonAngle = 0;
     
     private Rigidbody _rigidbody;
+    private Animator _animator;
+    
+   
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
+        _animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -38,13 +46,26 @@ public class TankController : MonoBehaviour
         _rigidbody.angularVelocity = _rotateInput * Mathf.Deg2Rad * _rtSpeed * transform.up;
         
         _tankTurret.Rotate(new Vector3(0,_rotateTurret * _turretSpeed * Time.deltaTime, 0));
-        _tankCannon.Rotate(Vector3.left * (_cannonAngle * _cannonSpeed * Time.deltaTime));
+        float angleChange = _cannonAngle * _cannonSpeed * Time.deltaTime;
+        _tankCannon.Rotate(Vector3.left * angleChange, Space.Self);
+        Vector3 currentLocalRotation = _tankCannon.localEulerAngles;
+        float normalizedAngleX = currentLocalRotation.x;
+        if (normalizedAngleX > 180)
+        {
+            normalizedAngleX -= 360;
+        }
+        float clampedAngleX = Mathf.Clamp(normalizedAngleX, MIN_CANNON_ANGLE, MAX_CANNON_ANGLE);
+        _tankCannon.localEulerAngles = new Vector3(clampedAngleX, 0f, 0f);
+        
+        _animator.SetFloat("Velocity", _rigidbody.linearVelocity.magnitude);
     }
 
     public void OnMoveForward(InputAction.CallbackContext ctx)
     {
         Debug.Log("I'm moving forward : " + ctx.ReadValue<float>());
         _moveInput = ctx.ReadValue<float>();
+        _smoke1.Play();
+        _smoke2.Play();
     }
     
     public void OnRotate(InputAction.CallbackContext ctx)
@@ -66,8 +87,16 @@ public class TankController : MonoBehaviour
         
     }
 
-    public void DoShooting()
+    public void DoShooting(InputAction.CallbackContext ctx)
     {
-      Instantiate(_bulletPrefab, _bulletSpawn.position, _bulletSpawn.rotation);   
+        Debug.Log("I'ma blast ya");
+        if (ctx.performed)
+        {
+            Instantiate(_bulletPrefab, _bulletSpawn.position, _bulletSpawn.rotation);
+            _flash.Play();
+        }
+        
+        
+           
     }
 }

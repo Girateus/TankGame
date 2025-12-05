@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5941661794102649878}
   - component: {fileID: 1423238261223921927}
   - component: {fileID: 3699940569493352506}
+  - component: {fileID: 7640145360819551176}
   m_Layer: 0
   m_Name: Box
   m_TagString: Untagged
@@ -68,10 +69,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dff980e23130d54d95f345f93b138a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _capForce: 250
-  _boxForce: 250
+  _capForce: 10
+  _boxForce: 10
   _capRb: {fileID: 4979028838640371366}
   _boxRb: {fileID: 6285123333815546526}
+--- !u!114 &7640145360819551176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5969224779068635427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 199b2a946fead5843bed08d8461bd811, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hpMax: 10
+  _onDeath:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3699940569493352506}
+        m_TargetAssemblyTypeName: DestroyableBox, Assembly-CSharp
+        m_MethodName: Explode
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _destroyable: 0
+  _gameOver:
+    m_PersistentCalls:
+      m_Calls: []
+  OnHealthChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  _hp: 0
 --- !u!1001 &134675108435334709
 PrefabInstance:
   m_ObjectHideFlags: 0
