@@ -16,9 +16,13 @@ public class TurrestBehavior : MonoBehaviour
     [SerializeField] private LayerMask _layers;
     
     private bool _playerDetected = false;
+    AudioManager audioManager;
 
     
-    
+    private void Awake()
+    {
+        audioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -91,6 +95,7 @@ public class TurrestBehavior : MonoBehaviour
                 _laser.enabled = true;
                 _laser.SetPosition(0,_laserPoint.position);
                 _laser.SetPosition(1, hit.point);
+                audioManager.PlaySound(audioManager.TurretsShoot);
                 
                 Debug.DrawRay(_turretCannon.position, _turretCannon.forward * 100, Color.green, 0.25f);
             }

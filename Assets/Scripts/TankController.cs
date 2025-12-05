@@ -27,7 +27,12 @@ public class TankController : MonoBehaviour
     private Rigidbody _rigidbody;
     private Animator _animator;
     
-   
+    AudioManager audioManager;
+
+    private void Awake()
+    {
+        audioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -94,6 +99,7 @@ public class TankController : MonoBehaviour
         {
             Instantiate(_bulletPrefab, _bulletSpawn.position, _bulletSpawn.rotation);
             _flash.Play();
+            audioManager.PlaySound(audioManager.TankShoot);
         }
         
         
